@@ -1,5 +1,6 @@
 from db.extensions import db, bcrypt
 from flask_login import UserMixin
+from datetime import datetime
 
 
 class Product(db.Model):
@@ -38,3 +39,43 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
         return f"<User {self.username} - {self.role}>"
+
+
+class Order(db.Model):
+    """Order model to store transaction details."""
+    id = db.Column(db.Integer, primary_key=True)  # Order ID
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Nullable for guest orders
+    total_price = db.Column(db.Float, nullable=False)  # Total amount of the order
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)  # Time of order placement
+
+    order_items = db.relationship('OrderItem', backref='order', lazy=True, cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<Order {self.id} - Total: €{self.total_price:.2f}>"
+
+
+class OrderItem(db.Model):
+    """OrderItem model to store individual items within an order."""
+    id = db.Column(db.Integer, primary_key=True)  # Unique item ID
+    order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)  # Order reference
+    product_id = db.Column(db.String(20), db.ForeignKey('product.id'), nullable=False)  # Product reference
+    quantity = db.Column(db.Integer, nullable=False)  # Number of products
+    unit_price = db.Column(db.Float, nullable=False)  # Price per unit
+
+    product = db.relationship('Product')
+
+    def __repr__(self):
+        return f"<OrderItem {self.product_id} x{self.quantity}>"
+
+
+class Cart(db.Model):
+    """Model to store shopping cart items per user."""
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Links cart to a user
+    product_id = db.Column(db.String(20), db.ForeignKey('product.id'), nullable=False)  # Links to a product
+    quantity = db.Column(db.Integer, nullable=False, default=1)  # Number of items
+
+    product = db.relationship('Product', backref='cart_items')
+
+    def __repr__(self):
+        return f"<Cart User:{self.user_id} Product:{self.product_id} Qty:{self.quantity}>"

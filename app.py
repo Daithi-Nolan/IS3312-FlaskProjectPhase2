@@ -5,6 +5,7 @@ from forms.registration_form import RegistrationForm
 from forms.login_form import LoginForm
 from forms.password_reset_form import PasswordResetForm, PasswordResetRequestForm
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -19,7 +20,7 @@ serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 db.init_app(app)
 migrate.init_app(app, db)
 
-from model.models import Product, User  # Import after initializing db
+from model.models import Product, User, Order, OrderItem  # Import after initialising db
 
 
 # Import model after initializing db to avoid circular imports
@@ -206,16 +207,137 @@ def logout():
     return redirect(url_for("login"))  # Redirect to login page
 
 
-@app.route("/checkout")
-@login_required
-def checkout():
-    return render_template("checkout.html")
+@app.before_request
+def ensure_basket_exists():
+    """Ensures a shopping basket exists in the session."""
+    if 'basket' not in session:
+        session['basket'] = {}  # Store cart as a dictionary (product_id → item details)
+
+
+@app.route('/add-to-cart/<product_id>', methods=['POST'])
+def add_to_cart(product_id):
+    """Adds a product to the shopping cart and stores it in session."""
+    product = Product.query.get(product_id)
+    if not product:
+        flash("Product not found.", "danger")
+        return redirect(url_for("all_products"))
+
+    try:
+        data = request.get_json()
+        quantity = int(data.get('quantity', 1))  # Default to 1 if not provided
+        if quantity <= 0:
+            raise ValueError("Quantity must be greater than zero.")
+    except (ValueError, TypeError):
+        flash("Invalid quantity.", "danger")
+        return redirect(url_for("all_products"))
+
+    # Ensure basket exists as a dictionary
+    cart = session.get('basket', {})
+
+    if product_id in cart:
+        cart[product_id]['quantity'] += quantity
+    else:
+        cart[product_id] = {
+            "name": product.name,
+            "price": product.price,
+            "image_url": product.image_url,  # Store product image for display
+            "quantity": quantity
+        }
+
+    session['basket'] = cart  # Update session storage
+    session.modified = True
+
+    flash(f"{product.name} added to cart!", "success")
+    return redirect(url_for("shopping_cart"))
 
 
 @app.route("/shopping-cart")
-@login_required
 def shopping_cart():
-    return render_template("shopping-cart.html")
+    """Displays the shopping cart page with product details and total price."""
+    cart = session.get('basket', {})
+    total_price = sum(item['price'] * item['quantity'] for item in cart.values())
+
+    return render_template("shopping-cart.html", cart=cart, total_price=total_price)
+
+
+@app.route("/update-cart/<product_id>/<action>")
+def update_cart(product_id, action):
+    """Updates the quantity of an item in the cart."""
+    cart = session.get('basket', {})
+
+    if product_id in cart:
+        if action == "increase":
+            cart[product_id]['quantity'] += 1
+        elif action == "decrease":
+            cart[product_id]['quantity'] -= 1
+            if cart[product_id]['quantity'] <= 0:
+                del cart[product_id]  # Remove if quantity reaches 0
+
+    session['basket'] = cart
+    session.modified = True
+    return redirect(url_for("shopping_cart"))
+
+
+@app.route("/remove-from-cart/<product_id>")
+def remove_from_cart(product_id):
+    """Removes an item from the shopping cart."""
+    cart = session.get('basket', {})
+
+    if product_id in cart:
+        del cart[product_id]
+
+    session['basket'] = cart
+    session.modified = True
+
+    flash("Item removed from cart.", "info")
+    return redirect(url_for("shopping_cart"))
+
+
+@app.route('/checkout', methods=['GET', 'POST'])
+def checkout():
+    """Handles checkout process."""
+    if 'basket' not in session or not session['basket']:
+        flash("Your cart is empty. Add items before checking out.", "warning")
+        return redirect(url_for('shopping_cart'))
+
+    cart = session['basket']
+    total_price = sum(item['quantity'] * item['price'] for item in cart.values())
+
+    if request.method == 'POST':
+        user_id = session.get('user_id')  # Get logged-in user ID (None for guest)
+
+        # Create new order
+        new_order = Order(user_id=user_id, total_price=total_price)
+        db.session.add(new_order)
+        db.session.commit()  # Commit order first to get order ID
+
+        # Create order items for each product in the cart
+        for product_id, item in cart.items():
+            order_item = OrderItem(
+                order_id=new_order.id,
+                product_id=product_id,
+                quantity=item['quantity'],
+                unit_price=item['price']
+            )
+            db.session.add(order_item)
+
+        db.session.commit()  # Commit all order items
+
+        # Clear cart after successful order
+        session['basket'] = {}
+        session.modified = True
+
+        flash("Your order has been placed successfully!", "success")
+        return redirect(url_for('order_confirmation', order_id=new_order.id))
+
+    return render_template('checkout.html', cart=cart, total_price=total_price)
+
+
+@app.route('/order-confirmation/<int:order_id>')
+def order_confirmation(order_id):
+    """Displays the order confirmation page."""
+    order = Order.query.get_or_404(order_id)
+    return render_template('order-confirmation.html', order=order)
 
 
 # Renders privacy policy page

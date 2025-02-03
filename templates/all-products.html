@@ -1,30 +1,31 @@
 {% extends "base.html" %}
 
+
 {% block title %}All Products - WeatherWay{% endblock %}
 
 {% block content %}
 
 <style>
-    .form-select { /* Imported css for dropdown menus */
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background-color: #343a40;
-    color: white;
-    padding: 0.75rem;
-    width: 100%;
-    border: 1px solid #6c757d;
-    position: relative;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpolygon fill='white' points='5,7 10,12 15,7'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    background-size: 1rem;
-}
+    .form-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-color: #343a40;
+        color: white;
+        padding: 0.75rem;
+        width: 100%;
+        border: 1px solid #6c757d;
+        position: relative;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpolygon fill='white' points='5,7 10,12 15,7'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 1rem;
+    }
 
-.form-select:focus {
-    outline: none;
-    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
-}
+    .form-select:focus {
+        outline: none;
+        box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+    }
 </style>
 
 <section class="py-5">
@@ -85,13 +86,13 @@
                     <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
                         <div class="d-flex justify-content-center">
                             <!-- View Product Button -->
-                            <a class="btn btn-outline-dark mt-auto me-2" href="/product-details/{{ product.id }}">
+                            <a class="btn btn-outline-dark mt-auto me-2" href="{{ url_for('product_details', product_id=product.id) }}">
                                 View Product
                             </a>
-                            <!-- Add to Cart Button -->
-                            <button class="btn btn-outline-dark flex-shrink-0" type="button" onclick="addToCart('{{ product.id }}')">
-                                <i class="bi-cart-fill"></i>
-                            </button>
+                            <!-- Add to Cart Button with Cart Icon -->
+                                <button class="btn btn-outline-dark flex-shrink-0" type="button" onclick="addToCart('{{ product.id }}')">
+                                    <i class="bi-cart-fill"></i> <!-- Using Bootstrap Icons -->
+                                </button>
                         </div>
                     </div>
                 </div>
@@ -102,15 +103,15 @@
 </section>
 
 <script>
-    function addToCart(productId) {  // Function to add a product to the shopping car
+    function addToCart(productId) {
         fetch(`/add-to-cart/${productId}`, {
-            method: 'POST',   // Send a POST request to add the selected product to the cart
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ quantity: 1 }) // Sends the quantity of the product to be added (always 1 in this case)
+            body: JSON.stringify({ quantity: 1 }) // Always adds 1 quantity
         })
-        .then(response => {  // Response to function completion
+        .then(response => {
             if (response.ok) {
                 alert('Item added to cart!');
             } else {

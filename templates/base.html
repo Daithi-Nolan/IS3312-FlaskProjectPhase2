@@ -102,7 +102,8 @@
                             <a class="btn btn-outline-light me-3 position-relative" href="{{ url_for('shopping_cart') }}">
                                 <i class="bi-cart-fill me-1"></i> Cart
                                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-white text-dark">
-                                    {{ session['basket']|sum(attribute='quantity') if 'basket' in session else 0 }}
+                                    {% set total_cart_quantity = session['basket'].values()|sum(attribute='quantity') if session.get('basket') else 0 %}
+                                    {{ total_cart_quantity }}
                                 </span>
                             </a>
                         </li>
