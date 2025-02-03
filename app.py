@@ -1,20 +1,23 @@
 from flask import *
+from flask_login import login_user, logout_user, login_required
 from db.extensions import db, migrate, login_manager
-
+from forms.registration_form import RegistrationForm
+from forms.login_form import LoginForm
 
 app = Flask(__name__)
 
+app.config['SECRET_KEY'] = 'WeatherWaySecretKey123'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize database before importing models
+# Initialize database before importing model
 db.init_app(app)
 migrate.init_app(app, db)
 
 from model.models import Product, User  # Import after initializing db
 
 
-# Import models after initializing db to avoid circular imports
+# Import model after initializing db to avoid circular imports
 @app.route('/')
 def customer_home():
     products = Product.query.all()
@@ -93,6 +96,73 @@ def load_user(user_id):
     return User.query.get(int(user_id))  # Loads user by ID
 
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+
+        if user and user.check_password(form.password.data):
+            login_user(user, remember=form.remember.data)
+            flash("Login successful!", "success")
+            return redirect(url_for("customer_home"))  # Redirect to home page
+
+        else:
+            flash("Invalid email or password. Please try again.", "danger")
+
+    return render_template("login.html", form=form)
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    form = RegistrationForm()
+
+    if form.validate_on_submit():
+        # Hash the user's password
+        hashed_password = User()
+        hashed_password.set_password(form.password.data)
+
+        # Create new user
+        new_user = User(
+            username=form.username.data,
+            first_name=form.first_name.data,
+            last_name=form.last_name.data,
+            email=form.email.data,
+            password_hash=hashed_password.password_hash,  # Store hashed password
+            role="customer"  # Default role is "customer"
+        )
+
+        # Add user to the database
+        db.session.add(new_user)
+        db.session.commit()
+
+        flash("Your account has been created! You can now log in.", "success")
+        return redirect(url_for("login"))  # Redirect to login page
+
+    return render_template("register.html", form=form)
+
+
+@app.route("/logout")
+@login_required  # Ensure only logged-in users can access this route
+def logout():
+    logout_user()  # Flask-Login method to clear user session
+    flash("You have been logged out.", "info")
+    return redirect(url_for("login"))  # Redirect to login page
+
+
+@app.route("/checkout")
+@login_required
+def checkout():
+    return render_template("checkout.html")
+
+
+@app.route("/shopping-cart")
+@login_required
+def shopping_cart():
+    return render_template("shopping-cart.html")
+
+
 # Renders privacy policy page
 @app.route('/privacy-policy')
 def privacy_policy():
@@ -113,6 +183,11 @@ def invalid_authorisation(e):
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template("404.html"), 404
+
+
+@app.errorhandler(405)
+def method_not_allowed(e):
+    return render_template("404.html"), 405
 
 
 @app.errorhandler(500)

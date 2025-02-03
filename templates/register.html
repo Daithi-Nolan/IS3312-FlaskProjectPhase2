@@ -11,48 +11,89 @@
                 <!-- Card Header with Title -->
                 <div class="card-header"><h3 class="text-center my-4">Create Account</h3></div>
                 <div class="card-body">
+                    <!-- Flash Messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} text-center">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
                     <!-- Registration Form -->
-                    <form method="POST" action="/register">
+                    <form method="POST" action="{{ url_for('register') }}">
+                        {{ form.hidden_tag() }}
+
+                        <!-- First Name Input Field -->
+                        <div class="form-floating mb-3">
+                            {{ form.first_name(class="form-control", placeholder="Enter your first name") }}
+                            <label for="inputFirstName">First Name</label>
+                            {% if form.first_name.errors %}
+                                <small class="text-danger">{{ form.first_name.errors[0] }}</small>
+                            {% endif %}
+                        </div>
+
+                        <!-- Last Name Input Field -->
+                        <div class="form-floating mb-3">
+                            {{ form.last_name(class="form-control", placeholder="Enter your last name") }}
+                            <label for="inputLastName">Last Name</label>
+                            {% if form.last_name.errors %}
+                                <small class="text-danger">{{ form.last_name.errors[0] }}</small>
+                            {% endif %}
+                        </div>
+
                         <!-- Username Input Field -->
                         <div class="form-floating mb-3">
-                            <input class="form-control" id="inputUsername" name="username" type="text" placeholder="Enter your username" required />
+                            {{ form.username(class="form-control", placeholder="Enter your username") }}
                             <label for="inputUsername">Username</label>
+                            {% if form.username.errors %}
+                                <small class="text-danger">{{ form.username.errors[0] }}</small>
+                            {% endif %}
                         </div>
+
                         <!-- Email Address Input Field -->
                         <div class="form-floating mb-3">
-                            <input class="form-control" id="inputEmail" name="email" type="email" placeholder="name@example.com" required />
+                            {{ form.email(class="form-control", placeholder="name@example.com") }}
                             <label for="inputEmail">Email address</label>
+                            {% if form.email.errors %}
+                                <small class="text-danger">{{ form.email.errors[0] }}</small>
+                            {% endif %}
                         </div>
+
                         <!-- Password and Confirm Password Fields -->
                         <div class="row mb-3">
                             <!-- Password Input Field -->
                             <div class="col-md-6">
                                 <div class="form-floating mb-3 mb-md-0">
-                                    <input class="form-control" id="inputPassword" name="password" type="password" placeholder="Create a password" required />
+                                    {{ form.password(class="form-control", placeholder="Create a password") }}
                                     <label for="inputPassword">Password</label>
+                                    {% if form.password.errors %}
+                                        <small class="text-danger">{{ form.password.errors[0] }}</small>
+                                    {% endif %}
                                 </div>
                             </div>
                             <!-- Confirm Password Input Field -->
                             <div class="col-md-6">
                                 <div class="form-floating mb-3 mb-md-0">
-                                    <input class="form-control" id="inputPasswordConfirm" name="password_confirm" type="password" placeholder="Confirm password" required />
+                                    {{ form.confirm_password(class="form-control", placeholder="Confirm password") }}
                                     <label for="inputPasswordConfirm">Confirm Password</label>
+                                    {% if form.confirm_password.errors %}
+                                        <small class="text-danger">{{ form.confirm_password.errors[0] }}</small>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
+
                         <!-- Create Account Button -->
                         <div class="mt-4 mb-0">
-                            <button class="btn btn-dark btn-block" type="submit">Create Account</button>
+                            {{ form.submit(class="btn btn-dark btn-block") }}
                         </div>
-                        <!-- Error Message Display -->
-                        {% if error %}
-                            <p class="text-danger mt-3 text-center">{{ error }}</p>
-                        {% endif %}
                     </form>
                 </div>
+
                 <!-- Footer with Login Link -->
                 <div class="card-footer text-center py-3">
-                    <div class="small"><a href="/">Have an account? Go to login</a></div>
+                    <div class="small"><a href="{{ url_for('login') }}">Have an account? Go to login</a></div>
                 </div>
             </div>
         </div>

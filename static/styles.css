@@ -3030,6 +3030,20 @@ textarea.form-control-lg {
   --bs-gradient: none;
 }
 
+.btn-go-home {
+    background-color: #ffde59;
+    color: #212529; /* Default text color for contrast */
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.btn-go-home:hover {
+    background-color: #e6c84c; /* Slightly darker yellow on hover */
+}
+
 .btn-outline-success {
   --bs-btn-color: #198754;
   --bs-btn-border-color: #198754;
