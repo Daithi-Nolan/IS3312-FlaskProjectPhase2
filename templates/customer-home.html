@@ -39,7 +39,7 @@
                             <!-- Product name -->
                             <h5 class="fw-bolder">{{ product.name }}</h5>
                             <!-- Product price -->
-                            €{{ product.price }}
+                            €{{ "{:.2f}".format(product.price) }}
                         </div>
                     </div>
                     <!-- Product actions -->

@@ -22,6 +22,22 @@
                 flex-direction: column;
             }
 
+            /* Highlight active navbar links */
+            .navbar-nav .nav-item .active {
+                font-weight: bold;
+                color: #ffde59 !important; /* Match WeatherWay theme */
+                background-color: transparent !important;
+                border-bottom: 3px solid #ffde59; /* Adds an underline effect */
+            }
+
+            /* Highlight active dropdown items */
+            .dropdown-menu .active {
+                font-weight: bold;
+                background-color: #ffde59 !important; /* Highlight selected dropdown item */
+                color: #000 !important; /* Ensure text is readable */
+            }
+
+
             /* Adds a background image for all customer-facing pages */
             body.customer-bg {
                 background-image: url("{{ url_for('static', filename='images/customer-bg.svg') }}");
@@ -62,14 +78,21 @@
                 <!-- Links for navigation within the website -->
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
-                        <li class="nav-item"><a class="nav-link text-white active" aria-current="page" href="/">Home</a></li>
-                        <li class="nav-item"><a class="nav-link text-white" href="/about">About</a></li>
+                       <li class="nav-item">
+                           <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="/">Home</a>
+                       </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.path == '/about' %}active{% endif %}" href="/about">About</a>
+                        </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-white" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Shop</a>
+                            <a class="nav-link dropdown-toggle {% if request.path.startswith('/all-products') or request.path.startswith('/featured-products') %}active{% endif %}"
+                            id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Shop
+                            </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="/all-products">All Products</a></li>
+                                <li><a class="dropdown-item {% if request.path == '/all-products' %}active{% endif %}" href="/all-products">All Products</a></li>
                                 <li><hr class="dropdown-divider" /></li>
-                                <li><a class="dropdown-item" href="/featured-products">Featured</a></li>
+                                <li><a class="dropdown-item {% if request.path == '/featured-products' %}active{% endif %}" href="/featured-products">Featured</a></li>
                             </ul>
                         </li>
                     </ul>

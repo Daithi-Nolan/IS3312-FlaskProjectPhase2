@@ -17,7 +17,7 @@
             <h1 class="display-5 fw-bolder">{{ product.name }}</h1>
             <!-- Product Price Display -->
             <div class="fs-5 mb-5">
-                <span>€{{ product.price }}</span>
+                <span>€{{ "{:.2f}".format(product.price) }}</span>
             </div>
             <!-- Product Information -->
             <p class="lead"><strong>Manufacturer: </strong> {{ product.brand }}</p>
