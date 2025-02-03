@@ -1,5 +1,6 @@
 from flask import *
-from db.extensions import db, migrate
+from db.extensions import db, migrate, login_manager
+
 
 app = Flask(__name__)
 
@@ -10,7 +11,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 migrate.init_app(app, db)
 
-from model.models import Product  # Import after initializing db
+from model.models import Product, User  # Import after initializing db
 
 
 # Import models after initializing db to avoid circular imports
@@ -66,7 +67,6 @@ def all_products():
     )
 
 
-
 @app.route('/featured-products')
 def featured_products():
     products = Product.query.all()
@@ -78,6 +78,19 @@ def featured_products():
 def product_details(product_id):
     product = Product.query.get_or_404(product_id)
     return render_template('product-details.html', product=product)
+
+
+# Initialise Flask-Login
+login_manager.init_app(app)
+login_manager.login_view = "login"  # Redirects users to login page if not authenticated
+login_manager.login_message = "Please log in to access this page."
+login_manager.login_message_category = "warning"
+
+
+# User loader function
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))  # Loads user by ID
 
 
 # Renders privacy policy page

@@ -1,10 +1,17 @@
-from app import app, db
-from model.models import Product
+from db.extensions import db
+from app import app
+from model.models import User, Product
 
 
-def seed_products():
+def seed_database():
     with app.app_context():
+        db.session.query(Product).delete()  # Delete all existing products
+        db.session.query(User).delete()  # Delete all exiting users
+        db.session.commit()
+
+        # Add Initial Products
         products = [
+
             # North America
             Product(id="WW001", name="Bears Ahead (USA)", brand="HSD", price=100.00, coating="Diamond-Grade Sheeting",
                     materials="Heavy-Gauge Marine-Grade Aluminum (5052-H38 Alloy)",
@@ -59,7 +66,8 @@ def seed_products():
                     country="Europe"),
 
             # Japan
-            Product(id="WW009", name="Junction Sign (Japan)", brand="HSD", price=185.00, coating="Diamond-Grade Sheeting",
+            Product(id="WW009", name="Junction Sign (Japan)", brand="HSD", price=185.00,
+                    coating="Diamond-Grade Sheeting",
                     materials="Heavy-Gauge Marine-Grade Aluminum (5052-H38 Alloy)",
                     embossing="Laser-Cut Raised Aluminum",
                     image_url="images/japanese/jap_junction.svg",
@@ -84,11 +92,24 @@ def seed_products():
                     description="The Japanese Stop Sign is designed to clearly signal drivers to come to a complete stop before proceeding. Its diamond-grade reflective coating ensures high visibility, day or night, and the sturdy aluminum build guarantees durability. This sign plays an essential role in maintaining safe driving practices, particularly at intersections, by preventing potential collisions.",
                     country="Japan")
         ]
+        db.session.bulk_save_objects(products)  # ✅ Bulk insert for performance
 
-        db.session.bulk_save_objects(products)
+        # Add Admin User - PyCharm flags these as an unexpected arguments, but it works fine
+        admin_user = User(
+            username="admin",
+            first_name="Admin",
+            last_name="User",
+            email="admin@weatherway.com",
+            role="admin"
+        )
+        admin_user.set_password("Admin123!")  # Securely hash password
+
+        db.session.add(admin_user)
         db.session.commit()
-        print("Database seeded with initial products.")
+
+        print("✅ Database seeded with initial data (Products & Admin User).")
+        print(User)
 
 
 if __name__ == "__main__":
-    seed_products()
+    seed_database()

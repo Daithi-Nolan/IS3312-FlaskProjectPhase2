@@ -1,4 +1,5 @@
-from db.extensions import db
+from db.extensions import db, bcrypt
+from flask_login import UserMixin
 
 
 class Product(db.Model):
@@ -17,17 +18,23 @@ class Product(db.Model):
         return f"<Product {self.name}>"
 
 
-class User:
-    def __init__(self, user_id, username, password, email, user_type="customer"):  # Creates user attributes
-        self.user_id = user_id
-        self.username = username
-        self.password = password
-        self.email = email
-        self.user_type = user_type
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    first_name = db.Column(db.String(100), unique=False, nullable=False)
+    last_name = db.Column(db.String(100), unique=False, nullable=False)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    password_hash = db.Column(db.String(200), nullable=False)  # Stores encrypted password
+    role = db.Column(db.String(20), default="customer", nullable=False)  # Admin or Customer
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
 
-    def is_admin(self):
-        return self.user_type == "admin"  # Checks whether user is an admin
+    # Method to set password
+    def set_password(self, password):
+        self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
 
-    def __repr__(self):  # Returns string used for debugging
-        return f"User({self.username}, {self.email}, Type: {self.user_type})"
+    # Method to check password
+    def check_password(self, password):
+        return bcrypt.check_password_hash(self.password_hash, password)
 
+    def __repr__(self):
+        return f"<User {self.username} - {self.role}>"
