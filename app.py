@@ -3,12 +3,17 @@ from flask_login import login_user, logout_user, login_required
 from db.extensions import db, migrate, login_manager
 from forms.registration_form import RegistrationForm
 from forms.login_form import LoginForm
+from forms.password_reset_form import PasswordResetForm, PasswordResetRequestForm
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'WeatherWaySecretKey123'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Token Serializer (Used for generating password reset links)
+serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
 # Initialize database before importing model
 db.init_app(app)
@@ -141,6 +146,56 @@ def register():
         return redirect(url_for("login"))  # Redirect to login page
 
     return render_template("register.html", form=form)
+
+
+@app.route("/password-reset", methods=["GET", "POST"])
+def password_reset():
+    form = PasswordResetRequestForm()
+
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+
+        if user:
+            # Generate a secure token for password reset
+            token = serializer.dumps(user.email, salt='password-reset-salt')
+            reset_url = url_for('password_reset_token', token=token, _external=True)
+
+            # Display a clickable link
+            flash(f'Follow this link to reset your password: <a href="{reset_url}">{reset_url}</a>', "info")
+
+        else:
+            flash("No account found with that email.", "danger")
+
+        return redirect(url_for("login"))
+
+    return render_template("password-reset.html", form=form)
+
+
+@app.route("/password-reset/<token>", methods=["GET", "POST"])
+def password_reset_token(token):
+    try:
+        # Try to decode the token
+        email = serializer.loads(token, salt='password-reset-salt', max_age=3600)
+    except SignatureExpired:
+        flash("The reset link has expired. Please request a new one.", "danger")
+        return redirect(url_for("password_reset"))
+    except BadSignature:
+        flash("Invalid or tampered reset link. Please try again.", "danger")
+        return redirect(url_for("password_reset"))
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        flash("No account found with this email.", "danger")
+        return redirect(url_for("password_reset"))
+
+    form = PasswordResetForm()
+    if form.validate_on_submit():
+        user.set_password(form.password.data)  # Hashes and sets the new password
+        db.session.commit()
+        flash("Your password has been reset! You can now log in.", "success")
+        return redirect(url_for("login"))
+
+    return render_template("password-reset-confirm.html", form=form)
 
 
 @app.route("/logout")

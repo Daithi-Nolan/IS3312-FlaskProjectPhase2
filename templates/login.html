@@ -12,13 +12,13 @@
                 <div class="card-header"><h3 class="text-center font-weight-light my-4">Login</h3></div>
                 <div class="card-body">
                     <!-- Flash Messages for Errors -->
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ category }} text-center">{{ message }}</div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
+                   {% with messages = get_flashed_messages(with_categories=true) %}
+                       {% if messages %}
+                           {% for category, message in messages %}
+                               <div class="alert alert-{{ category }} text-center">{{ message | safe }}</div>
+                           {% endfor %}
+                       {% endif %}
+                   {% endwith %}
 
                     <!-- Login Form -->
                     <form method="POST" action="{{ url_for('login') }}">
@@ -51,7 +51,7 @@
                         <!-- Links for Forgot Password and Registration -->
                         <div class="d-flex align-items-center justify-content-between mt-4 mb-0">
                             <div>
-                                <a class="small" href="{{ url_for('register') }}">Forgot Password?</a>
+                                <a class="small" href="{{ url_for('password_reset') }}">Forgot Password?</a>
                                 <a class="small p-1" href="{{ url_for('register') }}">Need an account? Sign up!</a>
                             </div>
                             <!-- Login Button -->
