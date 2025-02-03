@@ -1,0 +1,73 @@
+{% extends "auth-base.html" %}
+
+{% block title %}Terms and Conditions - WeatherWay{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Card for displaying Terms and Conditions -->
+            <div class="card shadow-lg border-0 rounded-lg mt-5">
+                <!-- Header with title of the Terms and Conditions -->
+                <div class="card-header">
+                    <h3 class="text-center font-weight-light my-4">Terms and Conditions</h3>
+                </div>
+                <!-- Body containing the terms and conditions content -->
+                <div class="card-body" style="max-height: 400px; overflow-y: scroll;">
+                    <p><strong>Effective Date:</strong> 6th December 2024</p>
+                    <p>Welcome to WeatherWay! By accessing our website, you agree to be bound by the following Terms and Conditions. If you do not agree to these terms, please do not use our website.</p>
+
+                    <p><strong>1. Use of the Website</strong></p>
+                    <ul>
+                        <li>You must be at least 18 years old to use this website or have parental consent.</li>
+                        <li>You agree not to use the website for any unlawful or prohibited activities.</li>
+                        <li>All content on this website is for informational purposes only and may be subject to change.</li>
+                    </ul>
+
+                    <p><strong>2. Products and Services</strong></p>
+                    <ul>
+                        <li>All product descriptions, images, and prices are accurate to the best of our knowledge but may contain errors.</li>
+                        <li>We reserve the right to modify or discontinue any product without prior notice.</li>
+                        <li>Purchases are subject to availability and may be canceled at our discretion.</li>
+                    </ul>
+
+                    <p><strong>3. Intellectual Property</strong></p>
+                    <ul>
+                        <li>All content, including images, text, and trademarks, is owned by WeatherWay or licensed to us.</li>
+                        <li>You may not reproduce, distribute, or use any content without prior written permission.</li>
+                    </ul>
+
+                    <p><strong>4. Limitation of Liability</strong></p>
+                    <ul>
+                        <li>WeatherWay is not liable for any indirect, incidental, or consequential damages arising from the use of our website or products.</li>
+                        <li>We are not responsible for delays or interruptions caused by factors beyond our control.</li>
+                    </ul>
+
+                    <p><strong>5. User Accounts</strong></p>
+                    <ul>
+                        <li>You are responsible for maintaining the confidentiality of your account and password.</li>
+                        <li>WeatherWay reserves the right to terminate accounts for any unauthorized activity.</li>
+                    </ul>
+
+                    <p><strong>6. Governing Law</strong></p>
+                    <p>These terms are governed by the laws of Ireland. Any disputes will be resolved in Irish courts.</p>
+
+                    <p><strong>7. Changes to Terms</strong></p>
+                    <p>We may update these Terms and Conditions at any time. Changes will be effective upon posting. Please review these terms periodically.</p>
+
+                    <p><strong>Contact Us</strong></p>
+                    <p>If you have any questions regarding these Terms and Conditions, please contact us:</p>
+                    <p>
+                        Email: admin@weatherway.com<br />
+                        Phone: +353 21 345 6789
+                    </p>
+                </div>
+                <!-- Footer with a back button for easy navigation -->
+                <div class="card-footer text-center py-3">
+                    <a href="javascript:history.back()" class="btn btn-dark">Go Back</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

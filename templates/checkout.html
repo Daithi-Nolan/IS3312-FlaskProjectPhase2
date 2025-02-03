@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - WeatherWay{% endblock %}
+
+{% block content %}
+<main class="flex-grow-1 py-5">
+    <div class="container">
+        <!-- Page Title -->
+        <h1 class="mb-4">Checkout</h1>
+
+        <!-- Checkout Form -->
+        <form method="POST" action="/checkout" id="checkoutForm">
+            <!-- Cart Summary Section -->
+            <h4>Your Items:</h4>
+            <ul class="list-group mb-4">
+                {% for item in cart_items %}
+                <!-- Displays product name, quantity, and total price per item -->
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ item.product.product_name }} x {{ item.quantity }}
+                    <span>€{{ (item.product.product_price * item.quantity) | round(2) }}</span>
+                </li>
+                {% endfor %}
+            </ul>
+
+            <!-- Subtotal Section -->
+            <div class="mt-3 text-end">
+                <!-- Display subtotal of items in the cart -->
+                <h4 class="fw-bold">Subtotal: €{{ total | round(2) }}</h4>
+            </div>
+
+            <!-- Delivery Options Section -->
+            <h4>Delivery Options:</h4>
+            <!-- Next Day Delivery Option -->
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="delivery_option" id="nextDay" value="next_day" onchange="updateTotalPrice()" required>
+                <label class="form-check-label" for="nextDay">
+                    Next Day Delivery (€15.00)
+                </label>
+            </div>
+            <!-- Express Delivery Option -->
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="delivery_option" id="express" value="express" onchange="updateTotalPrice()">
+                <label class="form-check-label" for="express">
+                    Express Delivery (3-4 Business Days) (€10.00)
+                </label>
+            </div>
+            <!-- Standard Delivery Option (Default) -->
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="delivery_option" id="standard" value="standard" onchange="updateTotalPrice()" checked>
+                <label class="form-check-label" for="standard">
+                    Standard Delivery (5-10 Business Days) (€5.00)
+                </label>
+            </div>
+
+            <!-- Total Price Section -->
+            <div class="mt-4">
+                <!-- Display total price, which will update based on selected delivery option -->
+                <h4>Total Price: €<span id="totalPrice">{{ total | round(2) }}</span></h4>
+            </div>
+
+            <!-- Checkout Button -->
+            <button type="submit" class="btn btn-dark mt-3">Place Order</button>
+        </form>
+    </div>
+</main>
+
+<!-- JavaScript to Handle Real-Time Price Updates -->
+<script>
+    // Base total price of items in the cart
+    const baseTotal = parseFloat("{{ total | round(2) }}");
+
+    // Delivery prices for different delivery options
+    const deliveryPrices = {
+        'next_day': 15.00,
+        'express': 10.00,
+        'standard': 5.00
+    };
+
+    // Function to update the total price when delivery option changes
+    function updateTotalPrice() {
+        let selectedDeliveryOption = document.querySelector('input[name="delivery_option"]:checked').value;
+        let deliveryCost = deliveryPrices[selectedDeliveryOption];
+        let updatedTotal = (baseTotal + deliveryCost).toFixed(2);
+        document.getElementById('totalPrice').innerText = updatedTotal;
+    }
+</script>
+{% endblock %}
+

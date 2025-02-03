@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart - WeatherWay{% endblock %}
+
+{% block content %}
+<!-- Shopping Cart Section -->
+<main class="flex-grow-1 py-5">
+    <div class="container">
+        <!-- Page Title -->
+        <h1 class="mb-4">Shopping Cart</h1>
+
+        {% if cart_items %}
+            <ul class="list-group">
+                <style>
+                    /* Adding hover effect for entire product item to darken */
+                    .list-group-item:hover {
+                        background-color: #eaeaea; /* Light grey colour with full opacity */
+                        transition: background-color 0.3s ease; /* Smooth transition */
+                    }
+
+                    /* Removing default button styles */
+                    .quantity-button,
+                    .trash-icon-button {
+                        background: none;
+                        border: none;
+                        color: var(--bs-dark);
+                        font-size: 1.5rem;
+                        cursor: pointer;
+                        margin-left: 10px;
+                        width: 30px;
+                        height: 30px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    .quantity-button:hover {
+                        color: var(--bs-primary); /* Change button colour on hover */
+                    }
+
+                    /* Trash can icon styling to match dark colour and align with quantity buttons */
+                    .trash-icon {
+                        max-height: 24px;
+                        max-width: 24px;
+                        filter: brightness(0) saturate(100%) invert(15%) sepia(0%) saturate(7500%) hue-rotate(180deg) brightness(85%) contrast(85%);
+                    }
+
+                    /* Trash can icon hover effect */
+                    .trash-icon-button:hover .trash-icon {
+                        filter: brightness(0) saturate(100%) invert(30%) sepia(100%) saturate(7000%) hue-rotate(180deg) brightness(80%) contrast(90%);
+                    }
+                </style>
+
+                {% for item in cart_items %}
+                    <!-- Display individual cart item with product details -->
+                    <li class="list-group-item d-flex align-items-center">
+                        <!-- Make entire item clickable for product details -->
+                        <a href="/product-details/{{ item.product.product_id }}" class="d-flex align-items-center flex-grow-1 text-decoration-none text-dark">
+                            <!-- Product Image -->
+                            <img src="{{ url_for('static', filename=item.product.image_url) }}" alt="{{ item.product.product_name }}" class="img-thumbnail me-3" style="width: 75px; height: auto;">
+                            <!-- Product Name and Quantity -->
+                            <div style="flex-basis: 300px; overflow: hidden;">
+                                <h5 class="mb-1">{{ item.product.product_name }}</h5>
+                                <p class="mb-0">€{{ item.product.product_price | round(2) }} x {{ item.quantity }}</p>
+                            </div>
+                        </a>
+
+                        <!-- Total Price for This Item -->
+                        <div class="text-end" style="width: 100px;">
+                            <strong>€{{ (item.product.product_price * item.quantity) | round(2) }}</strong>
+                        </div>
+
+                        <!-- +1 Quantity Button -->
+                        <form method="POST" action="/increment-cart/{{ item.product.product_id }}" class="ms-3">
+                            <button type="submit" class="quantity-button">+</button>
+                        </form>
+
+                        <!-- -1 Quantity Button -->
+                        <form method="POST" action="/decrement-cart/{{ item.product.product_id }}" class="ms-2">
+                            <button type="submit" class="quantity-button">-</button>
+                        </form>
+
+                        <!-- Trash Can Icon for Removing from Cart -->
+                        <form method="POST" action="/remove-from-cart/{{ item.product.product_id }}" class="ms-2">
+                            <button type="submit" class="trash-icon-button">
+                                <img src="{{ url_for('static', filename='assets/trash3-fill.svg') }}" alt="Remove item" class="trash-icon">
+                            </button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+
+            <!-- Display Subtotal Price -->
+            <div class="mt-3 text-end">
+                <h4 class="fw-bold">Subtotal: €{{ total | round(2) }}</h4>
+            </div>
+
+            <!-- Checkout Button -->
+            <div class="text-end">
+                <a href="/checkout" class="btn btn-dark mt-3">Proceed to Checkout</a>
+            </div>
+        {% else %}
+            <!-- Empty Cart Message -->
+            <p>Your cart is empty.</p>
+            <a href="/all-products" class="btn btn-dark">Shop Now</a>
+        {% endif %}
+    </div>
+</main>
+{% endblock %}

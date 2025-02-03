@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}All Products - WeatherWay{% endblock %}
+
+{% block content %}
+
+<style>
+    .form-select { /* Imported css for dropdown menus */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: #343a40;
+    color: white;
+    padding: 0.75rem;
+    width: 100%;
+    border: 1px solid #6c757d;
+    position: relative;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'%3E%3Cpolygon fill='white' points='5,7 10,12 15,7'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1rem;
+}
+
+.form-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+}
+</style>
+
+<section class="py-5">
+    <div class="container px-4 px-lg-5 mt-5">
+        <!-- Country Filter -->
+        <form method="get" action="/all-products" class="mb-4">
+            <div class="row gx-4">
+                <!-- Country Filter Dropdown -->
+                <div class="col-md-3 form-select-container" style="max-width: 18rem;">
+                    <select name="country" class="form-select bg-dark text-white" onchange="this.form.submit()">
+                        <option value="" {% if not selected_country %}selected{% endif %}>Countries: All Countries</option>
+                        {% for country in countries %}
+                            <option value="{{ country }}" {% if country == selected_country %}selected{% endif %}>{{ country }}</option>
+                        {% endfor %}
+                    </select>
+                    <noscript><button type="submit" class="btn btn-primary mt-2">Filter</button></noscript>
+                </div>
+
+                <!-- Sorting Dropdown (A-Z, Z-A) -->
+                <div class="col-md-3 form-select-container" style="max-width: 18rem;">
+                    <select name="sort" class="form-select bg-dark text-white" onchange="this.form.submit()">
+                        <option value="default" {% if selected_sort == 'default' %}selected{% endif %}>Sort By Alphabet</option>
+                        <option value="a-z" {% if selected_sort == 'a-z' %}selected{% endif %}>A-Z</option>
+                        <option value="z-a" {% if selected_sort == 'z-a' %}selected{% endif %}>Z-A</option>
+                    </select>
+                    <noscript><button type="submit" class="btn btn-primary mt-2">Sort</button></noscript>
+                </div>
+
+                <!-- Price Sorting Dropdown -->
+                <div class="col-md-3 form-select-container" style="max-width: 18rem;">
+                    <select name="price_sort" class="form-select bg-dark text-white" onchange="this.form.submit()">
+                        <option value="default" {% if selected_price_sort == 'default' %}selected{% endif %}>Sort (Price): Default</option>
+                        <option value="low-high" {% if selected_price_sort == 'low-high' %}selected{% endif %}>Price: Low to High</option>
+                        <option value="high-low" {% if selected_price_sort == 'high-low' %}selected{% endif %}>Price: High to Low</option>
+                    </select>
+                    <noscript><button type="submit" class="btn btn-primary mt-2">Sort by Price</button></noscript>
+                </div>
+            </div>
+        </form>
+
+        <!-- Products List -->
+        <div class="row gx-4 gx-lg-5 row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 justify-content-center">
+            {% for product in products %}
+            <div class="col mb-5">
+                <div class="card h-100">
+                    <!-- Product image -->
+                    <img class="card-img-top img-fluid" src="{{ url_for('static', filename=product.image_url) }}" alt="{{ product.name }}">
+                    <!-- Product details -->
+                    <div class="card-body p-4">
+                        <div class="text-center">
+                            <!-- Product name -->
+                            <h5 class="fw-bolder">{{ product.name }}</h5>
+                            <!-- Product price -->
+                            €{{ product.price }}
+                        </div>
+                    </div>
+                    <!-- Product actions -->
+                    <div class="card-footer p-4 pt-0 border-top-0 bg-transparent">
+                        <div class="d-flex justify-content-center">
+                            <!-- View Product Button -->
+                            <a class="btn btn-outline-dark mt-auto me-2" href="/product-details/{{ product.id }}">
+                                View Product
+                            </a>
+                            <!-- Add to Cart Button -->
+                            <button class="btn btn-outline-dark flex-shrink-0" type="button" onclick="addToCart('{{ product.id }}')">
+                                <i class="bi-cart-fill"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<script>
+    function addToCart(productId) {  // Function to add a product to the shopping car
+        fetch(`/add-to-cart/${productId}`, {
+            method: 'POST',   // Send a POST request to add the selected product to the cart
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ quantity: 1 }) // Sends the quantity of the product to be added (always 1 in this case)
+        })
+        .then(response => {  // Response to function completion
+            if (response.ok) {
+                alert('Item added to cart!');
+            } else {
+                alert('Failed to add item to cart.');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding item to cart:', error);
+            alert('An error occurred.');
+        });
+    }
+</script>
+
+{% endblock %}

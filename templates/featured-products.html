@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Featured Products - WeatherWay{% endblock %}
+
+{% block content %}
+<!-- Product section -->
+<section class="py-5">
+    {% for product in products %}
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="row gx-4 gx-lg-5 align-items-center">
+            <div class="col-md-6">
+                <img class="card-img-top img-fluid" src="{{ url_for('static', filename=product.image_url) }}" alt="{{ product.name }}">
+            </div>
+            <div class="col-md-6">
+                <div class="small mb-1">Product ID: {{ product.id }}</div>
+                <h1 class="display-5 fw-bolder">{{ product.name }}</h1>
+                <div class="fs-5 mb-5">
+                    <span>€{{ product.price }}</span>
+                    <p class="lead">{{ product.description }}</p>
+                </div>
+                <div class="d-flex justify-content-start align-items-center mt-4 gap-3">
+                    <!-- Quantity Input -->
+                    <input id="quantity-{{ product.id }}" class="form-control text-center" name="quantity" type="number" value="1" min="1" style="max-width: 3rem" />
+                    <!-- Add to Cart Button -->
+                    <button class="btn btn-outline-dark flex-shrink-0" type="button" onclick="addToCart('{{ product.id }}')">
+                        <i class="bi-cart-fill me-1"></i>
+                        Add to cart
+                    </button>
+                    <!-- View Options Button -->
+                    <a href="/product-details/{{ product.id }}" class="btn btn-outline-dark flex-shrink-0">
+                        View Product
+                    </a>
+                </div>
+            </div>
+        </div>
+        <hr class="my-5">
+    </div>
+    {% endfor %}
+</section>
+
+<script>  // Add to cart function like on other pages
+    function addToCart(productId) {
+        const quantityInput = document.getElementById(`quantity-${productId}`);
+        const quantity = quantityInput ? quantityInput.value : 1;
+
+        fetch(`/add-to-cart/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ quantity: quantity })
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Item added to cart!');
+            } else {
+                alert('Failed to add item to cart.');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding item to cart:', error);
+            alert('An error occurred.');
+        });
+    }
+</script>
+{% endblock %}

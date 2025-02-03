@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content="" />
+        <meta name="author" content="" />
+        <title>{% block title %}WeatherWay - Authentication{% endblock %}</title>
+
+        <!-- Linking to CSS -->
+        <link href="{{ url_for('static', filename='styles.css') }}" rel="stylesheet" />
+
+        <!-- Adding Bootstrap icons  -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css" rel="stylesheet">
+
+        <style>
+            /* Ensure the body and HTML elements take up the full height of the viewport */
+            html, body {
+                height: 100%;
+                margin: 0;
+                display: flex;
+                flex-direction: column;
+            }
+
+            /* Apply background image for authentication pages */
+            body.auth-bg {
+                background-image: url("{{ url_for('static', filename='images/auth-bg.svg') }}");
+                background-size: cover;  /* Cover entire viewport */
+                background-position: center;  /* Center the background image */
+                background-repeat: no-repeat;  /* Do not repeat the image */
+                background-attachment: fixed;  /* Keep background fixed during scrolling */
+            }
+
+            /* Make the main content grow to fill available space */
+            main {
+                flex-grow: 1;
+            }
+        </style>
+    </head>
+    <body class="auth-bg">
+        <!-- Main Content Block -->
+        <main>
+            {% block content %}
+
+            {% endblock %}
+        </main>
+
+        <!-- Footer Section -->
+        <footer class="py-3 bg-dark">
+            <div class="container d-flex justify-content-between align-items-center">
+                <p class="m-0 text-center text-white flex-grow-1 text-md-center">Copyright &copy; WeatherWay 2024</p>
+                <div class="text-end">
+                    <!-- Links to Privacy Policy and Terms & Conditions -->
+                    <a href="/privacy-policy" style="color: #FFDE59FF">Privacy Policy</a>
+                    &middot;
+                    <a href="/terms-conditions" style="color: #FFDE59FF">Terms &amp; Conditions</a>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Adding Bootstrap core JavaScript -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+
+        <!-- Linking JavaScript file -->
+        <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+    </body>
+</html>
