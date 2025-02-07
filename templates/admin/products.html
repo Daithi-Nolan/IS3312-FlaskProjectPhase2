@@ -48,9 +48,9 @@
                                 </td>
                                 <td>€{{ "%.2f"|format(product.price) }}</td>
                                 <td style="align-items: center">
-                                    <a href="{{ url_for('admin_edit_product', product_id=product.id) }}" class="btn btn-dark btn-sm">Edit</a>
+                                    <a href="{{ url_for('admin_edit_product', product_id=product.id) }}" class="btn btn-dark btn-sm">Edit</a> <!-- Edit Product Route -->
                                     <form action="{{ url_for('admin_delete_product', product_id=product.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this product?');">
-                                        <a type="submit" class="btn btn-danger">Delete</a>
+                                        <button type="submit" class="btn btn-danger">Delete</button> <!-- Deletes Product -->
                                     </form>
                                 </td>
                             </tr>

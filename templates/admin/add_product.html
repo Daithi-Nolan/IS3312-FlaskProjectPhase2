@@ -5,7 +5,7 @@
 {% block content %}
 
 <div class="container mt-4">
-    <h2 class="text-center mb-4">Add New Product</h2>
+    <h2 class="text-center mb-4">Add New Product</h2> <!-- Add New Product Form -->
     <div class="card shadow-sm p-4">
         <form method="POST" action="{{ url_for('admin_add_product') }}">
             {{ form.hidden_tag() }}
