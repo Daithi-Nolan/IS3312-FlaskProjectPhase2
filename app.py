@@ -5,6 +5,7 @@ from forms.registration_form import RegistrationForm
 from forms.login_form import LoginForm
 from forms.password_reset_form import PasswordResetForm, PasswordResetRequestForm
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+from model.models import *
 from datetime import datetime
 
 app = Flask(__name__)
@@ -203,6 +204,9 @@ def password_reset_token(token):
 @login_required  # Ensure only logged-in users can access this route
 def logout():
     logout_user()  # Flask-Login method to clear user session
+    session.pop('user_id', None)  # Remove user ID from session
+    session.pop('basket', None)  # Remove basket from session
+    session.modified = True  # Ensure changes are saved
     flash("You have been logged out.", "info")
     return redirect(url_for("login"))  # Redirect to login page
 
@@ -210,11 +214,14 @@ def logout():
 @app.before_request
 def ensure_basket_exists():
     """Ensures a shopping basket exists in the session."""
-    if 'basket' not in session:
-        session['basket'] = {}  # Store cart as a dictionary (product_id → item details)
+    if 'basket' not in session or not isinstance(session['basket'], dict):
+        session['basket'] = {}  # Ensure it's always a dictionary
+    session.modified = True  # Ensure session updates
 
 
 @app.route('/add-to-cart/<product_id>', methods=['POST'])
+@login_required
+
 def add_to_cart(product_id):
     """Adds a product to the shopping cart and stores it in session."""
     product = Product.query.get(product_id)
@@ -250,8 +257,8 @@ def add_to_cart(product_id):
     flash(f"{product.name} added to cart!", "success")
     return redirect(url_for("shopping_cart"))
 
-
 @app.route("/shopping-cart")
+@login_required
 def shopping_cart():
     """Displays the shopping cart page with product details and total price."""
     cart = session.get('basket', {})
@@ -370,6 +377,13 @@ def method_not_allowed(e):
 @app.errorhandler(500)
 def server_error(e):
     return render_template("500.html"), 500
+
+
+@app.route("/debug-session")
+def debug_session():
+    """Debugging endpoint to inspect session contents"""
+    print("Current session data:", session)
+    return jsonify(session)  # Returns session data for inspection
 
 
 if __name__ == '__main__':

@@ -20,14 +20,14 @@ class Product(db.Model):
 
 
 class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True, nullable=False)
-    first_name = db.Column(db.String(100), unique=False, nullable=False)
-    last_name = db.Column(db.String(100), unique=False, nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False)
-    password_hash = db.Column(db.String(200), nullable=False)  # Stores encrypted password
-    role = db.Column(db.String(20), default="customer", nullable=False)  # Admin or Customer
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    id: int = db.Column(db.Integer, primary_key=True)
+    username: str = db.Column(db.String(50), unique=True, nullable=False)
+    first_name: str = db.Column(db.String(100), unique=False, nullable=False)
+    last_name: str = db.Column(db.String(100), unique=False, nullable=False)
+    email: str = db.Column(db.String(100), unique=True, nullable=False)
+    password_hash: str = db.Column(db.String(200), nullable=False)
+    role: str = db.Column(db.String(20), default="customer", nullable=False)
+    created_at: datetime = db.Column(db.DateTime, default=db.func.current_timestamp())
 
     # Method to set password
     def set_password(self, password):

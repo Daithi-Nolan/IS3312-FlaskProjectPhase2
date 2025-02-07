@@ -1,12 +1,14 @@
 from db.extensions import db
 from app import app
-from model.models import User, Product
+from model.models import *
 
 
 def seed_database():
     with app.app_context():
         db.session.query(Product).delete()  # Delete all existing products
         db.session.query(User).delete()  # Delete all exiting users
+        db.session.query(Order).delete()
+        db.session.query(OrderItem).delete()
         db.session.commit()
 
         # Add Initial Products
@@ -93,19 +95,25 @@ def seed_database():
                     country="Japan")
         ]
         db.session.bulk_save_objects(products)  # ✅ Bulk insert for performance
-
-        # Add Admin User - PyCharm flags these as an unexpected arguments, but it works fine
-        admin_user = User(
-            username="admin",
-            first_name="Admin",
-            last_name="User",
-            email="admin@weatherway.com",
-            role="admin"
-        )
-        admin_user.set_password("Admin123!")  # Securely hash password
-
-        db.session.add(admin_user)
         db.session.commit()
+
+        # Ensure the script runs within the Flask app context
+        with app.app_context():
+            # Define users
+            users = [
+                User(username="admin",first_name="Admin",last_name="User", email="admin@weatherway.com", role="admin"),
+                User(username="customer", first_name="John", last_name="Doe", email="customer@gmail.com", role="customer")
+            ]
+
+            # Set passwords for each user
+            for user in users:
+                user.set_password("Password123")  # Hash the password before storing
+
+            # Add users to the database session
+            db.session.bulk_save_objects(users)  # Efficient batch insert
+            db.session.commit()  # Commit changes
+
+            print("Admin and Customer users added successfully!")
 
         print("✅ Database seeded with initial data (Products & Admin User).")
         print(User)

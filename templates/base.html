@@ -99,12 +99,18 @@
                     <!-- Shopping Cart and Authentication Buttons -->
                     <ul class="navbar-nav ms-auto">
                         <li class="nav-item">
+                           <!-- Shopping Cart Button -->
                             <a class="btn btn-outline-light me-3 position-relative" href="{{ url_for('shopping_cart') }}">
                                 <i class="bi-cart-fill me-1"></i> Cart
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-white text-dark">
-                                    {% set total_cart_quantity = session['basket'].values()|sum(attribute='quantity') if session.get('basket') else 0 %}
-                                    {{ total_cart_quantity }}
-                                </span>
+                                <!-- Displaying quantity of items in the cart -->
+                               {% if session.get('basket') %}
+                                   {% set total_items = session['basket'].values() | map(attribute='quantity') | sum %}
+                                   {% if total_items > 0 %}
+                                       <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-white text-dark">
+                                           {{ total_items }}
+                                       </span>
+                                   {% endif %}
+                               {% endif %}
                             </a>
                         </li>
 
@@ -145,8 +151,10 @@
         </footer>
 
         <!-- Bootstrap JS -->
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src= "https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
         <!-- Core theme JS -->
         <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+
+
     </body>
 </html>

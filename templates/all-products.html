@@ -90,9 +90,15 @@
                                 View Product
                             </a>
                             <!-- Add to Cart Button with Cart Icon -->
+                            {% if current_user.is_authenticated %}
                                 <button class="btn btn-outline-dark flex-shrink-0" type="button" onclick="addToCart('{{ product.id }}')">
                                     <i class="bi-cart-fill"></i> <!-- Using Bootstrap Icons -->
                                 </button>
+                            {% else %}
+                                <button class="btn btn-outline-dark flex-shrink-0" disabled>
+                                    <i class="bi-cart-fill"></i> <!-- Using Bootstrap Icons -->
+                                </button>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
