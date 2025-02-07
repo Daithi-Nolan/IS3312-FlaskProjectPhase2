@@ -4,8 +4,11 @@ from db.extensions import db, migrate, login_manager
 from forms.registration_form import RegistrationForm
 from forms.login_form import LoginForm
 from forms.password_reset_form import PasswordResetForm, PasswordResetRequestForm
+from forms.product_form import *
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from model.models import *
+from functools import wraps
+import uuid
 from datetime import datetime
 
 app = Flask(__name__)
@@ -178,20 +181,20 @@ def load_user(user_id):
     return User.query.get(int(user_id))  # Loads user by ID
 
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
 
-        if user and user.check_password(form.password.data):
-            login_user(user, remember=form.remember.data)
+        if user and bcrypt.check_password_hash(user.password_hash, form.password.data):
+            login_user(user)
+            session['user_id'] = user.id
+            session['role'] = user.role  # Ensure role is stored in session
             flash("Login successful!", "success")
-            return redirect(url_for("customer_home"))  # Redirect to home page
+            return redirect(url_for("customer_home"))
 
-        else:
-            flash("Invalid email or password. Please try again.", "danger")
+        flash("Invalid email or password", "danger")
 
     return render_template("login.html", form=form)
 
@@ -433,6 +436,133 @@ def terms_conditions():
     return render_template('terms-conditions.html')
 
 
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session or session.get('role') != 'admin':
+            flash("Unauthorized access. Admins only.", "danger")
+            return redirect(url_for('customer_home'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@app.route('/admin/reports')
+@admin_required
+def admin_reports():
+    """Displays transaction history with a date filter for admin users."""
+    transactions = (
+        db.session.query(
+            Order.id,
+            Order.timestamp,
+            Order.total_price,
+            User.first_name,
+            User.last_name,
+            OrderItem.quantity,
+            OrderItem.unit_price,
+            Product.name.label('product_name')
+        )
+        .join(User, Order.user_id == User.id)
+        .join(OrderItem, Order.id == OrderItem.order_id)
+        .join(Product, OrderItem.product_id == Product.id)
+        .order_by(Order.timestamp.desc())
+        .all()
+    )
+
+    return render_template('admin/reports.html', transactions=transactions)
+
+
+@app.route('/admin/products')
+@login_required
+@admin_required
+def admin_products():
+    """Displays all products in the admin panel."""
+    products = Product.query.order_by(Product.id).all()
+    return render_template('admin/products.html', products=products)
+
+
+# Add New Product
+@app.route('/admin/products/add', methods=['GET', 'POST'])
+@admin_required
+def admin_add_product():
+    """Allows an admin to add a new product."""
+    form = ProductForm()
+
+    if form.validate_on_submit():
+        # Generate a unique product ID (assuming 'WW' + UUID truncated)
+        new_product_id = "WW" + str(uuid.uuid4().hex[:3]).upper()
+
+        new_product = Product(
+            id=new_product_id,
+            name=form.name.data,
+            brand=form.brand.data,
+            price=form.price.data,
+            coating=form.coating.data,
+            materials=form.materials.data,
+            embossing=form.embossing.data,
+            image_url=form.image_url.data,
+            description=form.description.data,
+            country=form.country.data
+        )
+
+        db.session.add(new_product)
+        db.session.commit()
+
+        flash("New product added successfully!", "success")
+        return redirect(url_for('admin_products'))
+
+    return render_template('admin/add_product.html', form=form)
+
+
+@app.route('/admin/products/edit/<string:product_id>', methods=['GET'])
+@admin_required
+def admin_edit_product(product_id):
+    """Render the edit product page."""
+    product = Product.query.filter_by(id=product_id).first_or_404()
+    form = ProductForm(obj=product)
+    return render_template('admin/edit_product.html', form=form, product=product)
+
+
+@app.route('/admin/products/update/<string:product_id>', methods=['POST'])
+@admin_required
+def admin_update_product(product_id):
+    """Update an existing product."""
+    product = Product.query.filter_by(id=product_id).first_or_404()
+    form = ProductForm(request.form, obj=product)
+
+    if form.validate_on_submit():
+        form.populate_obj(product)  # Update product with form data
+        db.session.commit()
+        flash(f"Product {product.name} updated successfully!", "success")
+    else:
+        flash("There was an error updating the product.", "danger")
+        print(f"Editing Product: {product.id} - {product.name}")
+        print(form.errors)
+
+    return redirect(url_for('admin_products'))
+
+
+
+@app.route('/admin/products/delete/<product_id>', methods=['POST'])
+@admin_required
+def admin_delete_product(product_id):
+    """Deletes a product from the database"""
+    product = Product.query.get_or_404(product_id)
+
+    db.session.delete(product)
+    db.session.commit()
+    flash(f"Product {product.name} has been deleted successfully!", "success")
+
+    return redirect(url_for('admin_products'))
+
+
+@app.route('/admin/users')
+@admin_required
+def admin_users():
+    """Lists all users, allows deletion & admin creation."""
+    users = User.query.all()
+    return render_template('admin/users.html', users=users)
+
+
 @app.errorhandler(401)
 def invalid_authorisation(e):
     return render_template("401.html"), 401
@@ -453,11 +583,11 @@ def server_error(e):
     return render_template("500.html"), 500
 
 
-@app.route("/debug-session")
+@app.route('/debug-session')
 def debug_session():
-    """Debugging endpoint to inspect session contents"""
-    print("Current session data:", session)
-    return jsonify(session)  # Returns session data for inspection
+    """Route to print the session data for debugging"""
+    print(f"Current session data: {session}")
+    return jsonify(dict(session))  # Displays session data in JSON format
 
 
 if __name__ == '__main__':

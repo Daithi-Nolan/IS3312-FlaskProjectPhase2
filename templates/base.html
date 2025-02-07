@@ -97,14 +97,30 @@
                                 <li><a class="dropdown-item {% if request.path == '/featured-products' %}active{% endif %}" href="{{ url_for('featured_products') }}">{{ t["featured"] }}</a></li>
                             </ul>
                         </li>
-                        <form class="d-flex position-relative" autocomplete="off" style="padding-left: 20px">
-                            <input class="form-control me-2" type="text" id="search-input" placeholder="Search" style="background-color: #212529; color: white; width: 300px">
+                        <!-- Admin Dropdown (Only visible to admins) -->
+                        {% if session.get('role') == 'admin' %}
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#"
+                               id="adminDropdown" role="button" data-bs-toggle="dropdown"aria-expanded="false">
+                                Admin
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                <li><a class="dropdown-item" href="{{ url_for('admin_reports') }}">Reports</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin_products') }}">Products</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li><a class="dropdown-item" href="{{ url_for('admin_users') }}">Users</a></li>
+                            </ul>
+                        </li>
+                        {% endif %}
+                        <form class="d-flex position-relative" autocomplete="off" style="padding-left: 20px; align-items: center">
+                            <input class="form-control me-2" type="text" id="search-input" placeholder="Search" style="background-color: white; color: #212529; width: 300px; height: 35px; border-radius: 30px">
                             <div id="search-suggestions" class="dropdown-menu" style="display: none; position: absolute; top: 100%; left: 0; width: 100%;"></div>
                         </form>
                     </ul>
 
                     <!-- Shopping Cart and Authentication Buttons -->
-                    <ul class="navbar-nav ms-auto">
+                    <ul class="navbar-nav ms-auto" style="align-items: center">
                         <li class="nav-item">
                            <!-- Shopping Cart Button -->
                             <a class="btn btn-outline-light me-3 position-relative" href="{{ url_for('shopping_cart') }}">
@@ -126,8 +142,8 @@
                             <li class="nav-item">
                                 <a class="btn btn-outline-danger" href="{{ url_for('logout') }}">{{ t["sign_out"] }}</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link ">{{ t["welcome"] }}, {{ current_user.first_name }}</a>
+                            <li class="nav-item" style="padding-left: 15px; padding-right: 8px; font-size: large">
+                                <a class="nav-link ">{{ current_user.first_name }}</a>
                             </li>
                         {% else %}
                             <li class="nav-item">
@@ -137,7 +153,7 @@
                             <!-- Language Toggle -->
                             <li class="nav-item">
                                 <a href="#" id="toggle-language" class="nav-link">
-                                    <img id="lang-icon" src="{{ url_for('static', filename='images/' + ('union-jack.png' if session.get('language', 'en') == 'en' else 'france-flag.png')) }}" alt="{{ t['language'] }}" style="max-height: 20px; max-width: 30px">
+                                    <img id="lang-icon" src="{{ url_for('static', filename='images/' + ('union-jack.png' if session.get('language', 'en') == 'en' else 'france-flag.png')) }}" alt="{{ t['language'] }}" style="max-height: 30px; max-width: 45px">
                                 </a>
                             </li>
                     </ul>

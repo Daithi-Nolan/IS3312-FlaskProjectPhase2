@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Admin -  Edit Product{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Edit Product</h2>
+    <div class="card shadow-sm p-4">
+       <form method="POST" action="{{ url_for('admin_update_product', product_id=product.id) }}">
+            {{ form.hidden_tag() }}
+
+            <div class="mb-3">
+                <label class="form-label">Product Name</label>
+                {{ form.name(class="form-control") }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Brand</label>
+                {{ form.brand(class="form-control") }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Price ($)</label>
+                {{ form.price(class="form-control") }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Coating</label>
+                {{ form.coating(class="form-control") }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Materials</label>
+                {{ form.materials(class="form-control") }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Embossing</label>
+                {{ form.embossing(class="form-control") }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Image URL</label>
+                {{ form.image_url(class="form-control") }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                {{ form.description(class="form-control") }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Country</label>
+                {{ form.country(class="form-control") }}
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('admin_products') }}" class="btn btn-secondary">Cancel</a>
+                {{ form.submit(class="btn btn-dark") }}
+            </div>
+       </form>
+    </div>
+</div>
+{% endblock %}
