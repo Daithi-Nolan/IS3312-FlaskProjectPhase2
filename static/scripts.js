@@ -1,12 +1,3 @@
-/*!
-    * Start Bootstrap - SB Admin v7.0.7 (https://startbootstrap.com/template/sb-admin)
-    * Copyright 2013-2023 Start Bootstrap
-    * Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-sb-admin/blob/master/LICENSE)
-    */
-    // 
-// Scripts
-// 
-
 window.addEventListener('DOMContentLoaded', event => {
 
     // Toggle the side navigation
@@ -23,4 +14,49 @@ window.addEventListener('DOMContentLoaded', event => {
         });
     }
 
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('search-input');
+    const suggestionsContainer = document.getElementById('search-suggestions');
+
+    searchInput.addEventListener('input', function () {
+        let query = this.value.trim();
+
+        if (query.length >= 1) {  // Show suggestions after 1 letter
+            fetch(`/search-products?q=${query}`)
+                .then(response => response.json())
+                .then(results => {
+                    suggestionsContainer.innerHTML = '';  // Clear previous suggestions
+
+                    if (results.length > 0) {
+                        results.forEach(product => {
+                            let item = document.createElement('div');
+                            item.classList.add('dropdown-item', 'search-result');
+                            item.innerHTML = `
+                                <img src="${product.image_url}" alt="${product.name}" class="me-2" width="40" height="40">
+                                <span class="search-text">${product.name}</span>`;
+
+                            item.addEventListener('click', function () {
+                                window.location.href = `/product-details/${product.id}`;
+                            });
+
+                            suggestionsContainer.appendChild(item);
+                        });
+                        suggestionsContainer.style.display = 'block';
+                    } else {
+                        suggestionsContainer.style.display = 'none';
+                    }
+                });
+        } else {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
+
+    // Hide suggestions when clicking outside
+    document.addEventListener('click', function (event) {
+        if (!searchInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+            suggestionsContainer.style.display = 'none';
+        }
+    });
 });

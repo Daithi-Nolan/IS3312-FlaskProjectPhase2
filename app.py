@@ -84,9 +84,33 @@ def featured_products():
     return render_template('featured-products.html', products=featured)
 
 
-@app.route('/product-details/<string:product_id>')
+@app.route('/search-products')
+def search_products():
+    """Handles search requests for products by name."""
+    query = request.args.get('q', '').strip()  # Get search query from request
+
+    if not query:
+        return jsonify([])  # Return an empty list if no query
+
+    # Fetch matching products based on name (case-insensitive search)
+    products = Product.query.filter(Product.name.ilike(f"%{query}%")).limit(5).all()
+
+    # Format results for JSON response
+    results = [
+        {
+            "id": product.id,
+            "name": product.name,
+            "image_url": url_for('static', filename=product.image_url)  # Ensures correct image path
+        }
+        for product in products
+    ]
+
+    return jsonify(results)  # Return JSON response
+
+
+@app.route('/product-details/<product_id>')
 def product_details(product_id):
-    product = Product.query.get_or_404(product_id)
+    product = Product.query.get_or_404(product_id)  # Ensure it gets by ID
     return render_template('product-details.html', product=product)
 
 
@@ -221,7 +245,6 @@ def ensure_basket_exists():
 
 @app.route('/add-to-cart/<product_id>', methods=['POST'])
 @login_required
-
 def add_to_cart(product_id):
     """Adds a product to the shopping cart and stores it in session."""
     product = Product.query.get(product_id)
