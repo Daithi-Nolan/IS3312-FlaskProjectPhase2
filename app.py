@@ -108,6 +108,57 @@ def search_products():
     return jsonify(results)  # Return JSON response
 
 
+@app.route('/set-language/<lang>')
+def set_language(lang):
+    """Sets the language for the session and prevents infinite reload loops"""
+    if lang not in ["en", "fr"]:
+        return jsonify({"status": "error", "message": "Invalid language"}), 400
+
+    # Only update session if language has actually changed
+    if session.get("language") != lang:
+        session["language"] = lang
+        session.modified = True
+
+    return jsonify({"status": "success", "language": lang})
+
+
+translations = {
+    "en": {
+        "home": "Home",
+        "about": "About",
+        "shop": "Shop",
+        "all_products": "All Products",
+        "featured": "Featured",
+        "cart": "Cart",
+        "sign_in": "Login",
+        "sign_out": "Logout",
+        "welcome": "Welcome,",
+        "search": "Search for a product...",
+        "language": "Language"
+    },
+    "fr": {
+        "home": "Accueil",
+        "about": "À propos",
+        "shop": "Boutique",
+        "all_products": "Tous les produits",
+        "featured": "En vedette",
+        "cart": "Panier",
+        "sign_in": "Connexion",
+        "sign_out": "Déconnexion",
+        "welcome": "Bienvenue,",
+        "search": "Rechercher un produit...",
+        "language": "Langue"
+    }
+}
+
+
+@app.context_processor
+def inject_translations():
+    """Make translations available globally in all templates"""
+    language = session.get("language", "en")  # Default to English
+    return {"t": translations.get(language, translations["en"])}  # Provide translation dictionary
+
+
 @app.route('/product-details/<product_id>')
 def product_details(product_id):
     product = Product.query.get_or_404(product_id)  # Ensure it gets by ID

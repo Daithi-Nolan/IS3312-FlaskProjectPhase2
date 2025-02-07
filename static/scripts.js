@@ -60,3 +60,44 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+    const toggleLanguage = document.getElementById("toggle-language");
+    const langIcon = document.getElementById("lang-icon");
+
+    if (!toggleLanguage || !langIcon) return;
+
+    // Get stored language preference from sessionStorage instead of localStorage
+    let currentLang = sessionStorage.getItem("language") || "en";
+
+    // Update flag on page load
+    updateLanguageIcon(currentLang);
+
+    toggleLanguage.addEventListener("click", function (e) {
+        e.preventDefault();
+        const newLang = currentLang === "en" ? "fr" : "en";  // Toggle language
+
+        if (newLang !== currentLang) {  // Only update if it's actually changing
+            sessionStorage.setItem("language", newLang);
+            updateLanguage(newLang);
+        }
+    });
+
+    function updateLanguage(lang) {
+        fetch(`/set-language/${lang}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === "success") {
+                    updateLanguageIcon(lang);
+                    location.reload();  // Only reload after language switch
+                }
+            })
+            .catch(error => console.error("Error changing language:", error));
+    }
+
+    function updateLanguageIcon(lang) {
+        langIcon.src = lang === "en"
+            ? "/static/images/union-jack.png"
+            : "/static/images/france-flag.png";
+    }
+});

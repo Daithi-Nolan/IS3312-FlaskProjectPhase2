@@ -13,7 +13,7 @@
 
 
         <!-- Linking Bootstrap icons  -->
-        <script href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css" rel="stylesheet"></script>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css" rel="stylesheet">
 
         <style>
             /* Ensures the body and html take up the full height of the view */
@@ -81,25 +81,24 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
                         <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{{ url_for('customer_home') }}">Home</a>
+                            <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{{ url_for('customer_home') }}">{{ t["home"] }}</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if request.path == '/about' %}active{% endif %}" href="{{ url_for('about') }}">About</a>
+                            <a class="nav-link {% if request.path == '/about' %}active{% endif %}" href="{{ url_for('about') }}">{{ t["about"] }}</a>
                         </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle {% if request.path.startswith('/all-products') or request.path.startswith('/featured-products') %}active{% endif %}"
                             id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Shop
+                             {{ t["shop"] }}
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item {% if request.path == '/all-products' %}active{% endif %}" href="{{ url_for('all_products') }}">All Products</a></li>
+                                <li><a class="dropdown-item {% if request.path == '/all-products' %}active{% endif %}" href="{{ url_for('all_products') }}">{{ t["all_products"] }}</a></li>
                                 <li><hr class="dropdown-divider" /></li>
-                                <li><a class="dropdown-item {% if request.path == '/featured-products' %}active{% endif %}" href="{{ url_for('featured_products') }}">Featured</a></li>
+                                <li><a class="dropdown-item {% if request.path == '/featured-products' %}active{% endif %}" href="{{ url_for('featured_products') }}">{{ t["featured"] }}</a></li>
                             </ul>
                         </li>
                         <form class="d-flex position-relative" autocomplete="off" style="padding-left: 20px">
-                            <input class="form-control me-2" type="text" id="search-input" placeholder="Search for products..." style="background-color: #212529; color: white; width: 300px">
-
+                            <input class="form-control me-2" type="text" id="search-input" placeholder="Search" style="background-color: #212529; color: white; width: 300px">
                             <div id="search-suggestions" class="dropdown-menu" style="display: none; position: absolute; top: 100%; left: 0; width: 100%;"></div>
                         </form>
                     </ul>
@@ -109,7 +108,7 @@
                         <li class="nav-item">
                            <!-- Shopping Cart Button -->
                             <a class="btn btn-outline-light me-3 position-relative" href="{{ url_for('shopping_cart') }}">
-                                <i class="bi-cart-fill me-1"></i> Cart
+                                <i class="bi-cart-fill me-1"></i> {{ t["cart"] }}
                                 <!-- Displaying quantity of items in the cart -->
                                {% if session.get('basket') %}
                                    {% set total_items = session['basket'].values() | map(attribute='quantity') | sum %}
@@ -125,16 +124,22 @@
                         <!-- Dynamic Login/Logout and User Greeting -->
                         {% if current_user.is_authenticated %}
                             <li class="nav-item">
-                                <a class="btn btn-outline-danger" href="{{ url_for('logout') }}">Logout</a>
+                                <a class="btn btn-outline-danger" href="{{ url_for('logout') }}">{{ t["sign_out"] }}</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link ">Welcome, {{ current_user.first_name }}</a>
+                                <a class="nav-link ">{{ t["welcome"] }}, {{ current_user.first_name }}</a>
                             </li>
                         {% else %}
                             <li class="nav-item">
-                                <a class="btn btn-outline-success" href="{{ url_for('login') }}">Login</a>
+                                <a class="btn btn-outline-success" href="{{ url_for('login') }}">{{ t["sign_in"] }}</a>
                             </li>
                         {% endif %}
+                            <!-- Language Toggle -->
+                            <li class="nav-item">
+                                <a href="#" id="toggle-language" class="nav-link">
+                                    <img id="lang-icon" src="{{ url_for('static', filename='images/' + ('union-jack.png' if session.get('language', 'en') == 'en' else 'france-flag.png')) }}" alt="{{ t['language'] }}" style="max-height: 20px; max-width: 30px">
+                                </a>
+                            </li>
                     </ul>
                 </div>
             </div>
