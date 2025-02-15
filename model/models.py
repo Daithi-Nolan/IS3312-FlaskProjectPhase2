@@ -3,6 +3,7 @@ from flask_login import UserMixin
 from datetime import datetime
 
 
+# Product Table
 class Product(db.Model):
     id = db.Column(db.String(10), primary_key=True)
     name = db.Column(db.String(100), nullable=False)
@@ -19,6 +20,7 @@ class Product(db.Model):
         return f"<Product {self.name}>"
 
 
+# User Table
 class User(db.Model, UserMixin):
     id: int = db.Column(db.Integer, primary_key=True)
     username: str = db.Column(db.String(50), unique=True, nullable=False)
@@ -41,8 +43,8 @@ class User(db.Model, UserMixin):
         return f"<User {self.username} - {self.role}>"
 
 
+# Order Table - stores transaction details
 class Order(db.Model):
-    """Order model to store transaction details."""
     id = db.Column(db.Integer, primary_key=True)  # Order ID
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Nullable for guest orders
     total_price = db.Column(db.Float, nullable=False)  # Total amount of the order
@@ -54,8 +56,8 @@ class Order(db.Model):
         return f"<Order {self.id} - Total: €{self.total_price:.2f}>"
 
 
+# OrderItem Table - stores individual items within an order
 class OrderItem(db.Model):
-    """OrderItem model to store individual items within an order."""
     id = db.Column(db.Integer, primary_key=True)  # Unique item ID
     order_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)  # Order reference
     product_id = db.Column(db.String(20), db.ForeignKey('product.id'), nullable=False)  # Product reference
@@ -68,14 +70,3 @@ class OrderItem(db.Model):
         return f"<OrderItem {self.product_id} x{self.quantity}>"
 
 
-class Cart(db.Model):
-    """Model to store shopping cart items per user."""
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)  # Links cart to a user
-    product_id = db.Column(db.String(20), db.ForeignKey('product.id'), nullable=False)  # Links to a product
-    quantity = db.Column(db.Integer, nullable=False, default=1)  # Number of items
-
-    product = db.relationship('Product', backref='cart_items')
-
-    def __repr__(self):
-        return f"<Cart User:{self.user_id} Product:{self.product_id} Qty:{self.quantity}>"

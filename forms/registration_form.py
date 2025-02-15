@@ -5,6 +5,7 @@ from model.models import User
 
 
 class RegistrationForm(FlaskForm):
+    # Fields for user registration
     first_name = StringField("First Name", validators=[DataRequired(), Length(min=2, max=50)])
     last_name = StringField("Last Name", validators=[DataRequired(), Length(min=2, max=50)])
     username = StringField("Username", validators=[DataRequired(), Length(min=4, max=50)])
@@ -14,10 +15,11 @@ class RegistrationForm(FlaskForm):
         Length(min=6, message="Password must be at least 6 characters long."),
         EqualTo("confirm_password", message="Passwords must match.")
     ])
+    # Password field with validation for minimum length and confirmation
     confirm_password = PasswordField("Confirm Password", validators=[DataRequired()])
     submit = SubmitField("Register")
 
-    # Custom validator to ensure the username is unique
+    # Custom validators to ensure the username is unique
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
         if user:

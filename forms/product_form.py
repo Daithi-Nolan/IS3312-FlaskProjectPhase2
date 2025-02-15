@@ -3,6 +3,7 @@ from wtforms import StringField, DecimalField, IntegerField, SubmitField, URLFie
 from wtforms.validators import DataRequired, Length, NumberRange, URL
 
 
+# Fields for entry - all attributes except ID
 class ProductForm(FlaskForm):
     name = StringField("Product Name")
     brand = StringField("Brand")

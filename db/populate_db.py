@@ -5,13 +5,13 @@ from model.models import *
 
 def seed_database():
     with app.app_context():
-        db.session.query(Product).delete()  # Delete all existing products
-        db.session.query(User).delete()  # Delete all exiting users
+        db.session.query(Product).delete()  # Delete all existing data
+        db.session.query(User).delete()
         db.session.query(Order).delete()
         db.session.query(OrderItem).delete()
         db.session.commit()
 
-        # Add Initial Products
+        # Initial Products
         products = [
 
             # North America
@@ -94,28 +94,28 @@ def seed_database():
                     description="The Japanese Stop Sign is designed to clearly signal drivers to come to a complete stop before proceeding. Its diamond-grade reflective coating ensures high visibility, day or night, and the sturdy aluminum build guarantees durability. This sign plays an essential role in maintaining safe driving practices, particularly at intersections, by preventing potential collisions.",
                     country="Japan")
         ]
-        db.session.bulk_save_objects(products)  # ✅ Bulk insert for performance
+        db.session.bulk_save_objects(products)  # Bulk inserting
         db.session.commit()
 
-        # Ensure the script runs within the Flask app context
+
         with app.app_context():
-            # Define users
+            # Define users - It might say unexpected argument here, i still dont know why (is yet to cause any issues)
             users = [
                 User(username="admin",first_name="Admin",last_name="User", email="admin@weatherway.com", role="admin"),
                 User(username="customer", first_name="John", last_name="Doe", email="customer@gmail.com", role="customer")
             ]
 
-            # Set passwords for each user
+            # Setting passwords for each user
             for user in users:
                 user.set_password("Password123")  # Hash the password before storing
 
-            # Add users to the database session
-            db.session.bulk_save_objects(users)  # Efficient batch insert
-            db.session.commit()  # Commit changes
+            # Adding users to the database
+            db.session.bulk_save_objects(users)  #
+            db.session.commit()
 
             print("Admin and Customer users added successfully!")
 
-        print("✅ Database seeded with initial data (Products & Admin User).")
+        print("Database seeded with initial data (Products & Admin User).")
         print(User)
 
 

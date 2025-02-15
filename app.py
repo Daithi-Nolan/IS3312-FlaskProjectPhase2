@@ -11,6 +11,8 @@ from functools import wraps
 import uuid
 from datetime import datetime
 
+
+# Configures the Flask application with a secret key and database connection
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'WeatherWaySecretKey123'
@@ -20,14 +22,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Token Serializer (Used for generating password reset links)
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
-# Initialize database before importing model
+# Initialise database before importing model
 db.init_app(app)
 migrate.init_app(app, db)
 
 from model.models import Product, User, Order, OrderItem  # Import after initialising db
 
 
-# Import model after initializing db to avoid circular imports
+# Retrieves selected products and renders the home page
 @app.route('/')
 def customer_home():
     products = Product.query.all()
@@ -35,11 +37,13 @@ def customer_home():
     return render_template('customer-home.html', products=selected_products)
 
 
+# Displays the about page
 @app.route('/about')
 def about():
     return render_template('about.html')
 
 
+# Retrieves products from the database - Allows users to filter by country and sort by name or price.
 @app.route('/all-products', methods=['GET'])
 def all_products():
     # Fetch all products from the database
@@ -80,6 +84,7 @@ def all_products():
     )
 
 
+# Retrieves and displays featured products
 @app.route('/featured-products')
 def featured_products():
     products = Product.query.all()
@@ -87,6 +92,7 @@ def featured_products():
     return render_template('featured-products.html', products=featured)
 
 
+# Implements search bar functionality, returning up to five matching results
 @app.route('/search-products')
 def search_products():
     """Handles search requests for products by name."""
@@ -111,9 +117,10 @@ def search_products():
     return jsonify(results)  # Return JSON response
 
 
+# Allows users to toggle between English and French
 @app.route('/set-language/<lang>')
 def set_language(lang):
-    """Sets the language for the session and prevents infinite reload loops"""
+
     if lang not in ["en", "fr"]:
         return jsonify({"status": "error", "message": "Invalid language"}), 400
 
@@ -125,6 +132,7 @@ def set_language(lang):
     return jsonify({"status": "success", "language": lang})
 
 
+# Dictionary
 translations = {
     "en": {
         "home": "Home",
@@ -155,13 +163,14 @@ translations = {
 }
 
 
+# Ensures all pages have access to language settings.
 @app.context_processor
 def inject_translations():
-    """Make translations available globally in all templates"""
     language = session.get("language", "en")  # Default to English
     return {"t": translations.get(language, translations["en"])}  # Provide translation dictionary
 
 
+# Fetches and displays product information
 @app.route('/product-details/<product_id>')
 def product_details(product_id):
     product = Product.query.get_or_404(product_id)  # Ensure it gets by ID
@@ -178,9 +187,10 @@ login_manager.login_message_category = "warning"
 # User loader function
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))  # Loads user by ID
+    return User.query.get(int(user_id))
 
 
+# Authenticates users and starts their session
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -199,6 +209,7 @@ def login():
     return render_template("login.html", form=form)
 
 
+# Allows new users to create accounts
 @app.route("/register", methods=["GET", "POST"])
 def register():
     form = RegistrationForm()
@@ -208,14 +219,14 @@ def register():
         hashed_password = User()
         hashed_password.set_password(form.password.data)
 
-        # Create new user
+        # Create new user - might say theres an unexpected argument here, Ive yet to have any problems with it i dont know what the issue is - should work fine
         new_user = User(
             username=form.username.data,
             first_name=form.first_name.data,
             last_name=form.last_name.data,
             email=form.email.data,
-            password_hash=hashed_password.password_hash,  # Store hashed password
-            role="customer"  # Default role is "customer"
+            password_hash=hashed_password.password_hash,
+            role="customer"
         )
 
         # Add user to the database
@@ -278,6 +289,7 @@ def password_reset_token(token):
     return render_template("password-reset-confirm.html", form=form)
 
 
+# Ends a user session and redirects them to login
 @app.route("/logout")
 @login_required  # Ensure only logged-in users can access this route
 def logout():
@@ -289,18 +301,18 @@ def logout():
     return redirect(url_for("login"))  # Redirect to login page
 
 
+# Ensures that every user has a shopping cart stored in the session
 @app.before_request
 def ensure_basket_exists():
-    """Ensures a shopping basket exists in the session."""
     if 'basket' not in session or not isinstance(session['basket'], dict):
         session['basket'] = {}  # Ensure it's always a dictionary
     session.modified = True  # Ensure session updates
 
 
+# Adds an item to the session-based cart
 @app.route('/add-to-cart/<product_id>', methods=['POST'])
 @login_required
 def add_to_cart(product_id):
-    """Adds a product to the shopping cart and stores it in session."""
     product = Product.query.get(product_id)
     if not product:
         flash("Product not found.", "danger")
@@ -334,19 +346,20 @@ def add_to_cart(product_id):
     flash(f"{product.name} added to cart!", "success")
     return redirect(url_for("shopping_cart"))
 
+
+# Routes user to view their cart
 @app.route("/shopping-cart")
 @login_required
 def shopping_cart():
-    """Displays the shopping cart page with product details and total price."""
     cart = session.get('basket', {})
     total_price = sum(item['price'] * item['quantity'] for item in cart.values())
 
     return render_template("shopping-cart.html", cart=cart, total_price=total_price)
 
 
+# Enables +1/-1 item quantity in cart
 @app.route("/update-cart/<product_id>/<action>")
 def update_cart(product_id, action):
-    """Updates the quantity of an item in the cart."""
     cart = session.get('basket', {})
 
     if product_id in cart:
@@ -362,9 +375,9 @@ def update_cart(product_id, action):
     return redirect(url_for("shopping_cart"))
 
 
+# removes item from cart
 @app.route("/remove-from-cart/<product_id>")
 def remove_from_cart(product_id):
-    """Removes an item from the shopping cart."""
     cart = session.get('basket', {})
 
     if product_id in cart:
@@ -377,9 +390,9 @@ def remove_from_cart(product_id):
     return redirect(url_for("shopping_cart"))
 
 
+# Simulated checkout system
 @app.route('/checkout', methods=['GET', 'POST'])
 def checkout():
-    """Handles checkout process."""
     if 'basket' not in session or not session['basket']:
         flash("Your cart is empty. Add items before checking out.", "warning")
         return redirect(url_for('shopping_cart'))
@@ -417,9 +430,9 @@ def checkout():
     return render_template('checkout.html', cart=cart, total_price=total_price)
 
 
+# returns an order summary/confirmation
 @app.route('/order-confirmation/<int:order_id>')
 def order_confirmation(order_id):
-    """Displays the order confirmation page."""
     order = Order.query.get_or_404(order_id)
     return render_template('order-confirmation.html', order=order)
 
@@ -436,6 +449,7 @@ def terms_conditions():
     return render_template('terms-conditions.html')
 
 
+# Decorated function for Role-Based Access Control (RBAC)
 def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -446,10 +460,10 @@ def admin_required(f):
     return decorated_function
 
 
+# Displays past order information for admin
 @app.route('/admin/reports')
 @admin_required
 def admin_reports():
-    """Displays transaction history with a date filter for admin users."""
     transactions = (
         db.session.query(
             Order.id,
@@ -471,20 +485,19 @@ def admin_reports():
     return render_template('admin/reports.html', transactions=transactions)
 
 
+# Displays all products in the admin panel
 @app.route('/admin/products')
 @login_required
 @admin_required
 def admin_products():
-    """Displays all products in the admin panel."""
     products = Product.query.order_by(Product.id).all()
     return render_template('admin/products.html', products=products)
 
 
-# Add New Product
+# Adds New Product
 @app.route('/admin/products/add', methods=['GET', 'POST'])
 @admin_required
 def admin_add_product():
-    """Allows an admin to add a new product."""
     form = ProductForm()
 
     if form.validate_on_submit():
@@ -513,19 +526,19 @@ def admin_add_product():
     return render_template('admin/add_product.html', form=form)
 
 
+# Routes to product edit form
 @app.route('/admin/products/edit/<string:product_id>', methods=['GET'])
 @admin_required
 def admin_edit_product(product_id):
-    """Render the edit product page."""
     product = Product.query.filter_by(id=product_id).first_or_404()
     form = ProductForm(obj=product)
     return render_template('admin/edit_product.html', form=form, product=product)
 
 
+# Updates the product data from the edit product form
 @app.route('/admin/products/update/<string:product_id>', methods=['POST'])
 @admin_required
 def admin_update_product(product_id):
-    """Update an existing product."""
     product = Product.query.filter_by(id=product_id).first_or_404()
     form = ProductForm(request.form, obj=product)
 
@@ -541,11 +554,10 @@ def admin_update_product(product_id):
     return redirect(url_for('admin_products'))
 
 
-
+# Allows admin to delete products
 @app.route('/admin/products/delete/<product_id>', methods=['POST'])
 @admin_required
 def admin_delete_product(product_id):
-    """Deletes a product from the database"""
     product = Product.query.get_or_404(product_id)
 
     db.session.delete(product)
@@ -555,14 +567,7 @@ def admin_delete_product(product_id):
     return redirect(url_for('admin_products'))
 
 
-@app.route('/admin/users')
-@admin_required
-def admin_users():
-    """Lists all users, allows deletion & admin creation."""
-    users = User.query.all()
-    return render_template('admin/users.html', users=users)
-
-
+# Rendering error pages
 @app.errorhandler(401)
 def invalid_authorisation(e):
     return render_template("401.html"), 401
@@ -583,9 +588,9 @@ def server_error(e):
     return render_template("500.html"), 500
 
 
+# Prints session data for debugging
 @app.route('/debug-session')
 def debug_session():
-    """Route to print the session data for debugging"""
     print(f"Current session data: {session}")
     return jsonify(dict(session))  # Displays session data in JSON format
 
